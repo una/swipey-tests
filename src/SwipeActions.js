@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { animate, motion, useMotionValue, useTransform } from 'framer-motion';
 import { useSnap } from './useSnap';
 import { createContext, useContext, useRef } from 'react';
 import clsx from 'clsx';
@@ -39,11 +39,20 @@ const Root = ({ className, children, onSwipe }) => {
         style: { x }
     });
 
+    const swipe = () => {
+        animate(x, -150, {
+            onComplete: () => {
+                onSwipe?.();
+            }
+        });
+    }
+
     return (<SwipeActionsContext.Provider value={{
         triggerRef: handleRef,
         dragProps,
         setOpen: (open) => snapTo(open ? 0 : 1),
-        x
+        x,
+        swipe
     }}>
         <div className={clsx('SwipeActions', className)} ref={constraintsRef}>
             <Actions />
@@ -53,7 +62,13 @@ const Root = ({ className, children, onSwipe }) => {
 };
 
 const Trigger = ({ className, children }) => {
-    const { dragProps, triggerRef, x } = useSwipeActionsContext();
+    const { dragProps, triggerRef, x, swipe } = useSwipeActionsContext();
+
+    const onKeyDown = (e) => {
+        if (e.key === 'ArrowLeft') {
+            swipe();
+        }
+    }
 
     return (<motion.div
         role="button"
@@ -62,6 +77,7 @@ const Trigger = ({ className, children }) => {
         ref={triggerRef}
         {...dragProps}
         style={{ x }}
+        onKeyDown={onKeyDown}
     >
         {children}
     </motion.div>);
