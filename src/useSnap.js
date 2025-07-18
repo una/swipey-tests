@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 
 const minmax = (num, min, max) => Math.max(Math.min(max, num), min);
 
-export const useSnap = ({ direction, snapPoints, ref, springOptions = {}, constraints, dragElastic, onDragStart, onDragEnd, onMeasureDragConstraints }) => {
+export const useSnap = ({ direction, snapPoints, ref, springOptions = {}, constraints, dragElastic, onDragStart, onDragEnd, onMeasureDragConstraints, onSnap }) => {
     const constraintsBoxRef = useRef(null);
     const [currentSnappointIndex, setCurrentSnappointIndex] = useState(null);
 
@@ -115,12 +115,20 @@ export const useSnap = ({ direction, snapPoints, ref, springOptions = {}, constr
             throw new Error('element ref is not set');
         }
 
+        const elementBox = ref.current.getBoundingClientRect();
+        const dragDistance = Math.abs(info.offset.x);
+        const threshold = elementBox.width * (snapPoints.threshold || 0.5);
+
+        if (dragDistance > threshold) {
+            onSnap?.(-1);
+            return;
+        }
+
         const points = convertSnappoints(snapPoints);
         if (!points) {
             throw new Error(`snap points weren't calculated on drag start`);
         }
 
-        const elementBox = ref.current.getBoundingClientRect();
         const style = window.getComputedStyle(ref.current);
         const transformMatrix = new DOMMatrixReadOnly(style.transform);
         const translate = { x: transformMatrix.e, y: transformMatrix.f };
@@ -153,6 +161,7 @@ export const useSnap = ({ direction, snapPoints, ref, springOptions = {}, constr
         const minDistance = Math.min(...distances);
         const minDistanceIndex = distances.indexOf(minDistance);
         setCurrentSnappointIndex(minDistanceIndex);
+        onSnap?.(minDistanceIndex);
         const selectedPoint = points[minDistanceIndex];
 
         const constraintsBox = resolveConstraints();

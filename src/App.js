@@ -22,21 +22,11 @@ function App() {
       <h1>Swipe to Delete</h1>
       <div className="list">
         {items.map((item) => (
-          <div key={item.id}>
-            <SwipeActions.Root>
-              <SwipeActions.Trigger className="item-trigger">
-                {item.text}
-              </SwipeActions.Trigger>
-              <SwipeActions.Actions>
-                <SwipeActions.Action
-                  className="delete-action"
-                  onClick={() => handleDelete(item.id)}
-                >
-                  Delete
-                </SwipeActions.Action>
-              </SwipeActions.Actions>
-            </SwipeActions.Root>
-          </div>
+          <SwipeActions.Root key={item.id} onSwipe={() => handleDelete(item.id)}>
+            <SwipeActions.Trigger className="item-trigger">
+              {item.text}
+            </SwipeActions.Trigger>
+          </SwipeActions.Root>
         ))}
       </div>
     </div>

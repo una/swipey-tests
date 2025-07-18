@@ -9,6 +9,10 @@
 
 .SwipeActions .actions-wrapper {
     position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
     display: flex;
     justify-content: flex-end;
     overflow: hidden;
@@ -17,7 +21,12 @@
 .SwipeActions .actions {
     height: 100%;
     display: flex;
-    align-items: stretch;
+    align-items: center;
+    padding: 0 20px;
+}
+
+.SwipeActions .actions svg {
+    color: white;
 }
 
 .SwipeActions .action:focus-visible {

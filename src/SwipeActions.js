@@ -1,9 +1,7 @@
-import { motion, useMotionValueEvent, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 import { useSnap } from './useSnap';
-import { createContext, useContext, useMemo, useRef, useState } from 'react';
+import { createContext, useContext, useRef } from 'react';
 import clsx from 'clsx';
-import { mergeRefs } from "react-merge-refs";
-import useMotionMeasure from 'react-use-motion-measure';
 
 import './SwipeActions.css'
 
@@ -15,48 +13,47 @@ const useSwipeActionsContext = () => {
     return ctx;
 };
 
-const Root = ({ className, children }) => {
-    const [actionsWidth, setActionsWidth] = useState(0);
-    const actionsWrapperInset = 2;
-
+const Root = ({ className, children, onSwipe }) => {
     const handleRef = useRef(null);
-    const [triggerMeasureRef, triggerBounds] = useMotionMeasure();
-
-    const constraints = useMemo(() => ({
-        right: 0,
-        left: -actionsWidth - actionsWrapperInset
-    }), [actionsWidth, actionsWrapperInset]);
-
+    const constraintsRef = useRef(null);
+    const x = useMotionValue(0);
     const { dragProps, snapTo } = useSnap({
         direction: "x",
         ref: handleRef,
+        constraints: constraintsRef,
         snapPoints: {
             type: 'constraints-box',
-            points: [{ x: 0 }, { x: 1 }],
+            points: [{ x: 0 }],
             unit: 'percent',
+            threshold: 0.5,
         },
-        constraints,
+        onSnap: (index) => {
+            if (index === -1) {
+                onSwipe?.();
+            }
+        },
         dragElastic: { right: 0.04, left: 0.04 },
         springOptions: {
             bounce: 0.2,
         },
+        style: { x }
     });
 
     return (<SwipeActionsContext.Provider value={{
-        actionsWidth,
-        setActionsWidth,
-        triggerRef: mergeRefs([handleRef, triggerMeasureRef]),
+        triggerRef: handleRef,
         dragProps,
-        triggerHeight: triggerBounds.height,
-        actionsWrapperInset,
         setOpen: (open) => snapTo(open ? 0 : 1),
+        x
     }}>
-        <div className={clsx('SwipeActions', className)}>{children}</div>
+        <div className={clsx('SwipeActions', className)} ref={constraintsRef}>
+            <Actions />
+            {children}
+        </div>
     </SwipeActionsContext.Provider>);
 };
 
 const Trigger = ({ className, children }) => {
-    const { dragProps, triggerRef } = useSwipeActionsContext();
+    const { dragProps, triggerRef, x } = useSwipeActionsContext();
 
     return (<motion.div
         role="button"
@@ -64,56 +61,27 @@ const Trigger = ({ className, children }) => {
         className={clsx('trigger', className)}
         ref={triggerRef}
         {...dragProps}
+        style={{ x }}
     >
         {children}
     </motion.div>);
 };
 
-const Actions = ({ className, children, wrapperClassName }) => {
-    const { actionsWrapperInset, setOpen, triggerHeight, setActionsWidth } = useSwipeActionsContext();
-    const actionsWrapperHeight = useTransform(triggerHeight, v => v - actionsWrapperInset);
+const Actions = () => {
+    const { x } = useSwipeActionsContext();
+    const backgroundColor = useTransform(x, [0, -100], ['#fff', '#ff0000']);
+    const opacity = useTransform(x, [0, -20], [0, 1]);
 
-    const [actionsMeasureRef, actionsBounds] = useMotionMeasure();
-    useMotionValueEvent(actionsBounds.width, 'change', setActionsWidth);
-
-    return (<motion.div
-        className={clsx("actions-wrapper", wrapperClassName)}
-        style={{
-            height: actionsWrapperHeight,
-            inset: actionsWrapperInset,
-        }}
-    >
-        <motion.div
-            className={clsx('actions', className)}
-            ref={actionsMeasureRef}
-            onFocus={() => setOpen(true)}
-            onBlur={() => setOpen(false)}
-        >
-            {children}
+    return (
+        <motion.div className="actions-wrapper" style={{ backgroundColor }}>
+            <motion.div className="actions" style={{ opacity }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="feather feather-trash-2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            </motion.div>
         </motion.div>
-    </motion.div>);
-};
-
-const Action = ({ className, children, onClick, ...props }) => {
-    const { setOpen } = useSwipeActionsContext();
-    return (<motion.button
-        className={clsx('action', className)}
-        onClick={(e) => {
-            onClick?.(e);
-            if (!e.defaultPrevented) {
-                setOpen(false);
-                (document.activeElement)?.blur();
-            }
-        }}
-        {...props}
-    >
-        {children}
-    </motion.button>);
-};
+    )
+}
 
 export const SwipeActions = {
     Root,
     Trigger,
-    Actions,
-    Action,
 };
