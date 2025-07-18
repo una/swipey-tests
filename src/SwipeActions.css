@@ -25,11 +25,27 @@
     padding: 0 20px;
 }
 
-.SwipeActions .actions svg {
+.SwipeActions .actions .material-symbols-outlined {
     color: white;
 }
 
 .SwipeActions .action:focus-visible {
     outline-offset: -2px;
     outline-width: 2px;
+}
+
+.SwipeActions .trigger:focus-visible::before {
+    content: 'arrow_back delete';
+    font-family: 'Material Symbols Outlined';
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 5px;
+    z-index: 2;
+    letter-spacing: -6px;
+    padding-right: 16px;
 }
