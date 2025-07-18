@@ -116,11 +116,15 @@ export const useSnap = ({ direction, snapPoints, ref, springOptions = {}, constr
         }
 
         const elementBox = ref.current.getBoundingClientRect();
-        const dragDistance = Math.abs(info.offset.x);
+        const dragDistance = info.offset.x;
         const threshold = elementBox.width * (snapPoints.threshold || 0.5);
 
-        if (dragDistance > threshold) {
-            onSnap?.(-1);
+        if (Math.abs(dragDistance) > threshold) {
+            if (dragDistance < 0) {
+                onSnap?.(-1);
+            } else {
+                snapTo(0);
+            }
             return;
         }
 

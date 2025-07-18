@@ -40,10 +40,8 @@ const Root = ({ className, children, onSwipe }) => {
     });
 
     const swipe = () => {
-        animate(x, -150, {
-            onComplete: () => {
-                onSwipe?.();
-            }
+        animate(x, -constraintsRef.current.offsetWidth, {
+            onComplete: onSwipe
         });
     }
 

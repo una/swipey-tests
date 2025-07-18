@@ -6,6 +6,33 @@
   padding: 20px;
 }
 
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 400px;
+  margin: 0 auto 20px;
+}
+
+h1 {
+  margin: 0;
+}
+
+.add-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-button:hover {
+  background-color: rgba(0,0,0,0.1);
+}
+
 .list {
   max-width: 400px;
   margin: 0 auto;
